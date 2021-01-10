@@ -1,10 +1,19 @@
 import 'dart:ffi';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllScreens/loginScreen.dart';
+import 'package:flutter_uber_clone/AllScreens/mainscreen.dart';
+import 'package:flutter_uber_clone/main.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class Registerscreen extends StatelessWidget {
   static const String idScreen="register";
+
+  TextEditingController nameTextEditorController=TextEditingController();
+  TextEditingController emailTextEditorController=TextEditingController();
+  TextEditingController phoneTextEditorController=TextEditingController();
+  TextEditingController passwordTextEditorController=TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +46,7 @@ class Registerscreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 8,),
                   TextField(
+                    controller: emailTextEditorController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: "Email",
@@ -52,6 +62,7 @@ class Registerscreen extends StatelessWidget {
 
                   SizedBox(height: 8,),
                   TextField(
+                    controller: nameTextEditorController,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
                       labelText: "Name",
@@ -67,6 +78,7 @@ class Registerscreen extends StatelessWidget {
 
                   SizedBox(height: 8,),
                   TextField(
+                    controller: phoneTextEditorController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
                       labelText: "Phone number",
@@ -82,6 +94,7 @@ class Registerscreen extends StatelessWidget {
 
                   SizedBox(height: 8,),
                   TextField(
+                    controller: passwordTextEditorController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Password",
@@ -115,6 +128,15 @@ class Registerscreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: (){
+                      if(nameTextEditorController.text.length<4)
+                        {
+                          displayToastMsg("nmae must be atlkest 3 character",context);
+                        }else if(!emailTextEditorController.text.contains("@"))
+                          {
+                            displayToastMsg("email must be formated",context);
+                          }else{
+                            registerNewUser(context);
+                          }
 
                     },
                   )
@@ -125,13 +147,47 @@ class Registerscreen extends StatelessWidget {
               child: Text("Allready have Account, Login here"),
               onPressed: (){
                 Navigator.pushNamedAndRemoveUntil(context, Loginscreen.idScreen, (route) => false);
-
-
               },
             )
           ],
         ),
       ),
     );
+  }
+
+  final FirebaseAuth _firebaseAuth=FirebaseAuth.instance;
+
+  registerNewUser(BuildContext context) async
+  {
+    final User firebaseUser=(await _firebaseAuth.createUserWithEmailAndPassword(
+        email: emailTextEditorController.text,
+        password: passwordTextEditorController.text).catchError((errMsg){
+          displayToastMsg("error: "+errMsg.toString(), context);
+    })
+    ).user;
+    if(firebaseUser!=null){//user created
+      //save user info in database
+      userRef.child(firebaseUser.uid);
+      Map userDataMap={
+        "name":nameTextEditorController.text.trim(),
+        "password":passwordTextEditorController.text.trim(),
+        "email":emailTextEditorController.text.trim(),
+        "phone":phoneTextEditorController.text.trim()
+      };
+      
+      userRef.child(firebaseUser.uid).set(userDataMap);
+      displayToastMsg("hey congratulation, account created ", context);
+
+      Navigator.pushNamedAndRemoveUntil(context, MainScreen.idScreen, (route) => false);
+
+    }else{
+      //error occured
+      displayToastMsg("new user account has not cretaed.", context);
+    }
+  }
+
+  displayToastMsg(String msg, BuildContext covariant)
+  {
+    Fluttertoast.showToast(msg: msg);
   }
 }
