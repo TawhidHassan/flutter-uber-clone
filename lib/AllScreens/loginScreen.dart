@@ -1,10 +1,18 @@
 import 'dart:ffi';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllScreens/registerScreen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+import '../main.dart';
+import 'mainscreen.dart';
 
 class Loginscreen extends StatelessWidget {
   static const String idScreen="login";
+  TextEditingController emailTextEditorController=TextEditingController();
+  TextEditingController passwordTextEditorController=TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,6 +45,7 @@ class Loginscreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 8,),
                   TextField(
+                    controller: emailTextEditorController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: "Email",
@@ -52,6 +61,7 @@ class Loginscreen extends StatelessWidget {
 
                   SizedBox(height: 8,),
                   TextField(
+                    controller: passwordTextEditorController,
                     obscureText: true,
                     decoration: InputDecoration(
                       labelText: "Password",
@@ -85,6 +95,12 @@ class Loginscreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: (){
+                      if(!emailTextEditorController.text.contains("@"))
+                      {
+                        displayToastMsg("email must be formated",context);
+                      }else{
+                        loginUser(context);
+                      }
                     },
                   )
                 ],
@@ -101,5 +117,41 @@ class Loginscreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+
+  final FirebaseAuth _firebaseAuth=FirebaseAuth.instance;
+
+  loginUser(BuildContext context) async
+  {
+    final User firebaseUser=(await _firebaseAuth.signInWithEmailAndPassword(
+        email: emailTextEditorController.text,
+        password: passwordTextEditorController.text
+    ).catchError((err){
+      displayToastMsg("err: "+err.toString(), context);
+    })).user;
+    if(firebaseUser!=null){//user created
+      //save user info in database
+
+      userRef.child(firebaseUser.uid).once().then((DataSnapshot snap){
+        if(snap.value!=null){
+          Navigator.pushNamedAndRemoveUntil(context, MainScreen.idScreen, (route) => false);
+          displayToastMsg("hey congratulation, account created ", context);
+        }else{
+          _firebaseAuth.signOut();
+          displayToastMsg("No record exist,plz create account created ", context);
+        }
+      });
+    }else{
+      //error occured
+      displayToastMsg("new user account has not cretaed.", context);
+    }
+
+  }
+
+
+  displayToastMsg(String msg, BuildContext covariant)
+  {
+    Fluttertoast.showToast(msg: msg);
   }
 }
