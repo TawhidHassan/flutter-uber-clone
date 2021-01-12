@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllScreens/registerScreen.dart';
+import 'package:flutter_uber_clone/AllWidget/progressDialog.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../main.dart';
@@ -124,10 +125,19 @@ class Loginscreen extends StatelessWidget {
 
   loginUser(BuildContext context) async
   {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      // false = user must tap button, true = tap outside dialog
+      builder: (BuildContext dialogContext) {
+        return ProgressDialog(massage: "Please wait you are goin to login",);
+      },
+    );
     final User firebaseUser=(await _firebaseAuth.signInWithEmailAndPassword(
         email: emailTextEditorController.text,
         password: passwordTextEditorController.text
     ).catchError((err){
+      Navigator.pop(context);
       displayToastMsg("err: "+err.toString(), context);
     })).user;
     if(firebaseUser!=null){//user created
@@ -138,12 +148,14 @@ class Loginscreen extends StatelessWidget {
           Navigator.pushNamedAndRemoveUntil(context, MainScreen.idScreen, (route) => false);
           displayToastMsg("hey congratulation, account created ", context);
         }else{
+          Navigator.pop(context);
           _firebaseAuth.signOut();
           displayToastMsg("No record exist,plz create account created ", context);
         }
       });
     }else{
       //error occured
+      Navigator.pop(context);
       displayToastMsg("new user account has not cretaed.", context);
     }
 

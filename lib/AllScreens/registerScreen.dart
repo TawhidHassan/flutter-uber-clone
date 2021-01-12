@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllScreens/loginScreen.dart';
 import 'package:flutter_uber_clone/AllScreens/mainscreen.dart';
+import 'package:flutter_uber_clone/AllWidget/progressDialog.dart';
 import 'package:flutter_uber_clone/main.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -159,6 +160,14 @@ class Registerscreen extends StatelessWidget {
 
   registerNewUser(BuildContext context) async
   {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      // false = user must tap button, true = tap outside dialog
+      builder: (BuildContext dialogContext) {
+        return ProgressDialog(massage: "Please wait you are goin to login",);
+      },
+    );
     final User firebaseUser=(await _firebaseAuth.createUserWithEmailAndPassword(
         email: emailTextEditorController.text,
         password: passwordTextEditorController.text).catchError((errMsg){
@@ -181,6 +190,8 @@ class Registerscreen extends StatelessWidget {
       Navigator.pushNamedAndRemoveUntil(context, MainScreen.idScreen, (route) => false);
 
     }else{
+      Navigator.pop(context);
+
       //error occured
       displayToastMsg("new user account has not cretaed.", context);
     }
