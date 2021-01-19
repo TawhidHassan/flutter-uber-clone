@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: Loginscreen.idScreen,
+      initialRoute: MainScreen.idScreen,
       routes: {
         Registerscreen.idScreen:(context)=>Registerscreen(),
         Loginscreen.idScreen:(context)=>Loginscreen(),
