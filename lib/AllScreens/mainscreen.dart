@@ -1,7 +1,9 @@
 
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllWidget/Divider.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class MainScreen extends StatefulWidget {
@@ -14,6 +16,20 @@ class _MainScreenState extends State<MainScreen> {
 
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController newGoogleMapController;
+
+  Position currentPosition;
+  // var geoLocator=Geolocator();
+  double bottomPaddingOfMap=0;
+
+  void locatePosition()async{
+    Position position=await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    currentPosition=position;
+
+    LatLng latLngPosition=LatLng(position.latitude, position.longitude);
+
+    CameraPosition cameraPosition=new CameraPosition(target: latLngPosition,zoom: 14);
+    newGoogleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+  }
 
   GlobalKey<ScaffoldState> scaffoldkey=new GlobalKey<ScaffoldState>();
 
@@ -85,13 +101,22 @@ class _MainScreenState extends State<MainScreen> {
       body: Stack(
         children: [
           GoogleMap(
+            padding: EdgeInsets.only(bottom:bottomPaddingOfMap ),
             mapType: MapType.normal,
             myLocationButtonEnabled: true,
             initialCameraPosition: _kGooglePlex,
+            myLocationEnabled: true,
+            zoomGesturesEnabled: true,
+            zoomControlsEnabled: true,
             onMapCreated: (GoogleMapController controller)
             {
               _controllerGoogleMap.complete(controller);
               newGoogleMapController=controller;
+
+              setState(() {
+                bottomPaddingOfMap=300.0;
+              });
+              locatePosition();
             },
           ),
           //Hamburger button for drawer
