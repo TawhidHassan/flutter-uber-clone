@@ -132,6 +132,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
 
             //title for display prediction
+            SizedBox(height: 10.0,),
             (placePredictionList.length>0)
                 ? Padding(
                   padding: EdgeInsets.symmetric(vertical: 8.0,horizontal: 16.0),
@@ -194,6 +195,7 @@ class PredictionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(height: 8.0),
                     Text(placePrediction.main_text,overflow:TextOverflow.ellipsis,style: TextStyle(
                       fontSize: 16.0,
                     ),
@@ -206,9 +208,10 @@ class PredictionTile extends StatelessWidget {
                     )
                   ],
                 ),
-              )
+              ),
             ],
           ),
+          SizedBox(width: 10.0,),
         ],
       ),
     );
