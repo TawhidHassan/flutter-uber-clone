@@ -3,11 +3,16 @@ import 'package:flutter_uber_clone/Models/address.dart';
 
 class AppData extends ChangeNotifier
 {
-  Address picUpLocation;
+  Address picUpLocation,dropOffLocation;
 
   void updatePickupLocationAddress(Address pickUpAddress)
   {
     picUpLocation=pickUpAddress;
+    notifyListeners();
+  }
+  void upDateDropOffLocationAddress(Address dropOffAddress)
+  {
+    dropOffLocation=dropOffAddress;
     notifyListeners();
   }
 }
