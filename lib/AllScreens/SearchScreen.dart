@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_uber_clone/AllWidget/Divider.dart';
 import 'package:flutter_uber_clone/Assistants/requestAssistant.dart';
 import 'package:flutter_uber_clone/DataHandler/appData.dart';
+import 'package:flutter_uber_clone/Models/placePrediction.dart';
 import 'package:flutter_uber_clone/configMaps.dart';
 import 'package:provider/provider.dart';
 
@@ -13,6 +15,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   TextEditingController pickUpTextEditingController=TextEditingController();
   TextEditingController dropOfftextEditingController=TextEditingController();
+
+  List<PlacePrediction> placePredictionList=[];
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +129,24 @@ class _SearchScreenState extends State<SearchScreen> {
                   ],
                 ),
               ),
-            )
+            ),
+
+            //title for display prediction
+            (placePredictionList.length>0)
+                ? Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0,horizontal: 16.0),
+                  child:ListView.separated(
+                    padding: EdgeInsets.all(0.0),
+                    itemBuilder: (context,index){
+                      return PredictionTile(placePrediction: placePredictionList[index],);
+                    },
+                    separatorBuilder: (BuildContext context,int index)=>DividerWidget(),
+                    itemCount: placePredictionList.length,
+                    shrinkWrap: true,
+                    physics: ClampingScrollPhysics(),
+                  ) ,
+                 )
+                : Container(),
           ],
         ),
     );
@@ -141,7 +162,56 @@ class _SearchScreenState extends State<SearchScreen> {
           {
             return;
           }
+        if(res["status"]=="OK"){
+          var predictions=res["predictions"];
+          
+          var placeList=(predictions as List).map((e) => PlacePrediction.fromJson(e)).toList();
+          setState(() {
+            placePredictionList=placeList;
+          });
+        }
     }
   }
 
 }
+
+class PredictionTile extends StatelessWidget {
+
+  final PlacePrediction placePrediction;
+  PredictionTile({Key key,this.placePrediction}):super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          SizedBox(width: 10.0,),
+          Row(
+            children: [
+              Icon(Icons.add_location),
+              SizedBox(width: 14.0,),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(placePrediction.main_text,overflow:TextOverflow.ellipsis,style: TextStyle(
+                      fontSize: 16.0,
+                    ),
+                    ),
+                    SizedBox(height: 3.0,),
+                    Text(placePrediction.secondary_text,overflow: TextOverflow.ellipsis,style:TextStyle(
+                        fontSize: 12.0,
+                        color: Colors.grey
+                    ),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
