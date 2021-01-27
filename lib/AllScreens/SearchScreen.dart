@@ -252,6 +252,8 @@ class PredictionTile extends StatelessWidget {
         address.longitute=res["result"]["geometry"]["location"]["lng"];
 
         Provider.of<AppData>(context,listen: false).upDateDropOffLocationAddress(address);
+
+        Navigator.pop(context,"obtainDirection");
       }
   }
 }

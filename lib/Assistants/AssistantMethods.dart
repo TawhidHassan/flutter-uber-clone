@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/Assistants/requestAssistant.dart';
 import 'package:flutter_uber_clone/DataHandler/appData.dart';
 import 'package:flutter_uber_clone/Models/address.dart';
+import 'package:flutter_uber_clone/Models/directDetails.dart';
 import 'package:flutter_uber_clone/configMaps.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 class AssistantMethods{
@@ -33,5 +35,30 @@ class AssistantMethods{
     }
 
     return placeAddress;
+  }
+
+  static Future<DirecttionDetails> obtainDirectionDetails(LatLng initialPosition,LatLng finalPosition) async
+  {
+    String directionUrl="https://maps.googleapis.com/maps/api/directions/json?origin=${initialPosition.latitude},${initialPosition.longitude}&destination=${finalPosition.latitude},${finalPosition.longitude}&key=$mapKey";
+    // String directionUrl="https://maps.googleapis.com/maps/api/directions/json?origin=Toronto&destination=Montreal&key=$mapKey";
+
+    var res=await RequestAssistant.getRequest(directionUrl);
+
+    if(res=="failed")
+      {
+        return null;
+      }
+
+    DirecttionDetails directtionDetails=DirecttionDetails();
+
+    directtionDetails.encodedPoints= res["routes"][0]["overview_polyline"]["points"];
+
+    directtionDetails.distanceText= res["routes"][0]["legs"][0]["distance"]["text"];
+    directtionDetails.distanceValue= res["routes"][0]["legs"][0]["distance"]["value"];
+
+    directtionDetails.durationText= res["routes"][0]["legs"][0]["duration"]["value"];
+    directtionDetails.durationValue= res["routes"][0]["legs"][0]["duration"]["value"];
+
+    return directtionDetails;
   }
 }

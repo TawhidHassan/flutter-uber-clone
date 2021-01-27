@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_uber_clone/AllScreens/SearchScreen.dart';
 import 'package:flutter_uber_clone/AllWidget/Divider.dart';
+import 'package:flutter_uber_clone/AllWidget/progressDialog.dart';
 import 'package:flutter_uber_clone/Assistants/AssistantMethods.dart';
 import 'package:flutter_uber_clone/DataHandler/appData.dart';
 import 'package:geolocator/geolocator.dart';
@@ -185,8 +186,13 @@ class _MainScreenState extends State<MainScreen> {
                     SizedBox(height: 20.0,),
 
                     GestureDetector(
-                      onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context)=>SearchScreen()));
+                      onTap: () async{
+
+                         var res=await Navigator.push(context, MaterialPageRoute(builder: (context)=>SearchScreen()));
+                         if(res=="obtainDirection")
+                           {
+                             await getPlaceDirection();
+                           }
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -263,5 +269,27 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
     );
+  }
+  
+  Future<void> getPlaceDirection()async
+  {
+    var initialPos=Provider.of<AppData>(context,listen: false).picUpLocation;
+    var finalPos=Provider.of<AppData>(context,listen: false).dropOffLocation;
+
+    var pickUpLaLng=LatLng(initialPos.latitude, initialPos.longitute);
+    var dropOffLapLng=LatLng(finalPos.latitude, finalPos.longitute);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context)=>ProgressDialog(massage:"Please Wait....",);
+    );
+
+    var details=await AssistantMethods.obtainDirectionDetails(pickUpLaLng, dropOffLapLng);
+
+    Navigator.pop(context);
+
+
+
+
   }
 }
