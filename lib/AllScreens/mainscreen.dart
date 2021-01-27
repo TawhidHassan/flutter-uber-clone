@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_uber_clone/AllScreens/SearchScreen.dart';
 import 'package:flutter_uber_clone/AllWidget/Divider.dart';
 import 'package:flutter_uber_clone/AllWidget/progressDialog.dart';
@@ -22,8 +23,12 @@ class _MainScreenState extends State<MainScreen> {
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController newGoogleMapController;
 
+  List<LatLng> pLineCoordinates=[];
+  Set<Polyline> polylineSet={};
+
+
   Position currentPosition;
-  // var geoLocator=Geolocator();
+  var geoLocator=Geolocator();
   double bottomPaddingOfMap=0;
 
   void locatePosition()async{
@@ -114,6 +119,7 @@ class _MainScreenState extends State<MainScreen> {
             myLocationEnabled: true,
             zoomGesturesEnabled: true,
             zoomControlsEnabled: true,
+            polylines: polylineSet,
             onMapCreated: (GoogleMapController controller)
             {
               _controllerGoogleMap.complete(controller);
@@ -288,8 +294,48 @@ class _MainScreenState extends State<MainScreen> {
 
     Navigator.pop(context);
 
+    PolylinePoints polylinePoints=PolylinePoints();
+    List<PointLatLng> decodedPointsResult=polylinePoints.decodePolyline(details.encodedPoints);
 
+    pLineCoordinates.clear();
+    if(decodedPointsResult.isNotEmpty)
+      {
+        decodedPointsResult.forEach((PointLatLng pointLatLng) {
+         pLineCoordinates.add(LatLng(pickUpLaLng.latitude,pointLatLng.longitude));
+        });
+      }
 
+    polylineSet.clear();
+    setState(() {
+      Polyline polyline=Polyline(
+        polylineId: PolylineId("polylineId"),
+        color: Colors.pink,
+        jointType: JointType.round,
+        points: pLineCoordinates,
+        width: 5,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+      );
+      polylineSet.add(polyline);
+    });
+    LatLngBounds latLngBounds;
+    if(pickUpLaLng.latitude>dropOffLapLng.latitude&&pickUpLaLng.longitude>dropOffLapLng.longitude)
+      {
+        latLngBounds=LatLngBounds(southwest: dropOffLapLng, northeast: pickUpLaLng);
+      }
+     else if(pickUpLaLng.longitude>dropOffLapLng.longitude)
+      {
+        latLngBounds=LatLngBounds(southwest: LatLng(pickUpLaLng.latitude,dropOffLapLng.longitude), northeast: LatLng(dropOffLapLng.latitude,pickUpLaLng.longitude));
+      } else if(pickUpLaLng.latitude>dropOffLapLng.latitude)
+      {
+        latLngBounds=LatLngBounds(southwest: LatLng(dropOffLapLng.latitude,pickUpLaLng.longitude), northeast: LatLng(pickUpLaLng.latitude,dropOffLapLng.longitude));
+      }else
+        {
+          latLngBounds=LatLngBounds(southwest: pickUpLaLng, northeast: dropOffLapLng);
 
+        }
+     
+     newGoogleMapController.animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 70));
   }
 }
